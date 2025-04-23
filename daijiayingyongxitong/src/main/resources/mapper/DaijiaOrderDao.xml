@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.DaijiaOrderDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.daijia_order_uuid_number as daijiaOrderUuidNumber
+        ,a.daijia_id as daijiaId
+        ,a.yonghu_id as yonghuId
+        ,a.buy_licheng as buyLicheng
+        ,a.daijia_order_true_price as daijiaOrderTruePrice
+        ,a.daijia_order_types as daijiaOrderTypes
+        ,a.daijia_order_payment_types as daijiaOrderPaymentTypes
+        ,a.insert_time as insertTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.DaijiaOrderView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,yonghu.yonghu_name as yonghuName
+        ,yonghu.yonghu_phone as yonghuPhone
+        ,yonghu.yonghu_id_number as yonghuIdNumber
+        ,yonghu.yonghu_photo as yonghuPhoto
+        ,yonghu.yonghu_email as yonghuEmail
+        ,yonghu.new_money as newMoney
+        ,daijia.daijia_uuid_number as daijiaUuidNumber
+        ,daijia.daijia_name as daijiaName
+        ,daijia.daijia_phone as daijiaPhone
+        ,daijia.daijia_id_number as daijiaIdNumber
+        ,daijia.daijia_email as daijiaEmail
+        ,daijia.daijia_photo as daijiaPhoto
+        ,daijia.daijia_jialing as daijiaJialing
+        ,daijia.daijia_old_money as daijiaOldMoney
+        ,daijia.daijia_new_money as daijiaNewMoney
+        ,daijia.daijia_clicknum as daijiaClicknum
+        ,daijia.daijia_content as daijiaContent
+
+        FROM daijia_order  a
+        left JOIN yonghu yonghu ON a.yonghu_id = yonghu.id
+        left JOIN daijia daijia ON a.daijia_id = daijia.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test=" params.daijiaOrderUuidNumber != '' and params.daijiaOrderUuidNumber != null and params.daijiaOrderUuidNumber != 'null' ">
+                and a.daijia_order_uuid_number like CONCAT('%',#{params.daijiaOrderUuidNumber},'%')
+            </if>
+            <if test="params.daijiaId != null and params.daijiaId != ''">
+                and (
+                    a.daijia_id = #{params.daijiaId}
+                )
+            </if>
+            <if test="params.yonghuId != null and params.yonghuId != ''">
+                and (
+                    a.yonghu_id = #{params.yonghuId}
+                )
+            </if>
+            <if test="params.buyLichengStart != null ">
+                <![CDATA[  and a.buy_licheng >= #{params.buyLichengStart}   ]]>
+            </if>
+            <if test="params.buyLichengEnd != null ">
+                <![CDATA[  and a.buy_licheng <= #{params.buyLichengEnd}   ]]>
+            </if>
+            <if test="params.daijiaOrderTruePriceStart != null ">
+                <![CDATA[  and a.daijia_order_true_price >= #{params.daijiaOrderTruePriceStart}   ]]>
+            </if>
+            <if test="params.daijiaOrderTruePriceEnd != null ">
+                <![CDATA[  and a.daijia_order_true_price <= #{params.daijiaOrderTruePriceEnd}   ]]>
+            </if>
+            <if test="params.daijiaOrderTypes != null and params.daijiaOrderTypes != ''">
+                and a.daijia_order_types = #{params.daijiaOrderTypes}
+            </if>
+            <if test="params.daijiaOrderPaymentTypes != null and params.daijiaOrderPaymentTypes != ''">
+                and a.daijia_order_payment_types = #{params.daijiaOrderPaymentTypes}
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+
+                <!-- 判断用户的id不为空 -->
+            <if test=" params.yonghuIdNotNull != '' and params.yonghuIdNotNull != null and params.yonghuIdNotNull != 'null' ">
+                and a.yonghu_id IS NOT NULL
+            </if>
+            <if test=" params.yonghuName != '' and params.yonghuName != null and params.yonghuName != 'null' ">
+                and yonghu.yonghu_name like CONCAT('%',#{params.yonghuName},'%')
+            </if>
+            <if test=" params.yonghuPhone != '' and params.yonghuPhone != null and params.yonghuPhone != 'null' ">
+                and yonghu.yonghu_phone like CONCAT('%',#{params.yonghuPhone},'%')
+            </if>
+            <if test=" params.yonghuIdNumber != '' and params.yonghuIdNumber != null and params.yonghuIdNumber != 'null' ">
+                and yonghu.yonghu_id_number like CONCAT('%',#{params.yonghuIdNumber},'%')
+            </if>
+            <if test=" params.yonghuEmail != '' and params.yonghuEmail != null and params.yonghuEmail != 'null' ">
+                and yonghu.yonghu_email like CONCAT('%',#{params.yonghuEmail},'%')
+            </if>
+            <if test="params.newMoneyStart != null ">
+                <![CDATA[  and yonghu.new_money >= #{params.newMoneyStart}   ]]>
+            </if>
+            <if test="params.newMoneyEnd != null ">
+                <![CDATA[  and yonghu.new_money <= #{params.newMoneyEnd}   ]]>
+            </if>
+                <!-- 判断代驾司机的id不为空 -->
+            <if test=" params.daijiaIdNotNull != '' and params.daijiaIdNotNull != null and params.daijiaIdNotNull != 'null' ">
+                and a.daijia_id IS NOT NULL
+            </if>
+            <if test=" params.daijiaUuidNumber != '' and params.daijiaUuidNumber != null and params.daijiaUuidNumber != 'null' ">
+                and daijia.daijia_uuid_number like CONCAT('%',#{params.daijiaUuidNumber},'%')
+            </if>
+            <if test=" params.daijiaName != '' and params.daijiaName != null and params.daijiaName != 'null' ">
+                and daijia.daijia_name like CONCAT('%',#{params.daijiaName},'%')
+            </if>
+            <if test=" params.daijiaPhone != '' and params.daijiaPhone != null and params.daijiaPhone != 'null' ">
+                and daijia.daijia_phone like CONCAT('%',#{params.daijiaPhone},'%')
+            </if>
+            <if test=" params.daijiaIdNumber != '' and params.daijiaIdNumber != null and params.daijiaIdNumber != 'null' ">
+                and daijia.daijia_id_number like CONCAT('%',#{params.daijiaIdNumber},'%')
+            </if>
+            <if test=" params.daijiaEmail != '' and params.daijiaEmail != null and params.daijiaEmail != 'null' ">
+                and daijia.daijia_email like CONCAT('%',#{params.daijiaEmail},'%')
+            </if>
+            <if test=" params.daijiaJialing != '' and params.daijiaJialing != null and params.daijiaJialing != 'null' ">
+                and daijia.daijia_jialing like CONCAT('%',#{params.daijiaJialing},'%')
+            </if>
+            <if test="params.daijiaOldMoneyStart != null ">
+                <![CDATA[  and daijia.daijia_old_money >= #{params.daijiaOldMoneyStart}   ]]>
+            </if>
+            <if test="params.daijiaOldMoneyEnd != null ">
+                <![CDATA[  and daijia.daijia_old_money <= #{params.daijiaOldMoneyEnd}   ]]>
+            </if>
+            <if test="params.daijiaNewMoneyStart != null ">
+                <![CDATA[  and daijia.daijia_new_money >= #{params.daijiaNewMoneyStart}   ]]>
+            </if>
+            <if test="params.daijiaNewMoneyEnd != null ">
+                <![CDATA[  and daijia.daijia_new_money <= #{params.daijiaNewMoneyEnd}   ]]>
+            </if>
+            <if test="params.daijiaClicknumStart != null  and params.daijiaClicknumStart != '' ">
+                <![CDATA[  and daijia.daijia_clicknum >= #{params.daijiaClicknumStart}   ]]>
+            </if>
+            <if test="params.daijiaClicknumEnd != null  and params.daijiaClicknumEnd != '' ">
+                <![CDATA[  and daijia.daijia_clicknum <= #{params.daijiaClicknumEnd}   ]]>
+            </if>
+            <if test="params.daijiaClicknum != null  and params.daijiaClicknum != '' ">
+                and daijia.daijia_clicknum = #{params.daijiaClicknum}
+            </if>
+            <if test=" params.daijiaContent != '' and params.daijiaContent != null and params.daijiaContent != 'null' ">
+                and daijia.daijia_content like CONCAT('%',#{params.daijiaContent},'%')
+            </if>
+        </where>
+
+        order by a.${params.orderBy} desc 
+    </select>
+
+</mapper>
